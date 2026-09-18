@@ -18,6 +18,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+import html
+import textwrap
 import httpx
 import streamlit as st
 
@@ -336,16 +338,14 @@ def render_response_metadata(meta: dict):
     unique_pages = sorted(list({ch.get("page_number") for ch in chunks if ch.get("page_number")}))
     citations_html = "".join([f'<span class="page-citation-pill">📄 Page {p}</span>' for p in unique_pages])
 
-    st.markdown(
-        f"""
-        <div style="margin-top: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-            <span class="{badge_class}">Confidence: {conf_val:.1%} ({label})</span>
-            <span class="badge-grounded">{grounded_label}</span>
-            {citations_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    badges_html = textwrap.dedent(f"""
+    <div style="margin-top: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+        <span class="{badge_class}">Confidence: {conf_val:.1%} ({label})</span>
+        <span class="badge-grounded">{grounded_label}</span>
+        {citations_html}
+    </div>
+    """).strip()
+    st.markdown(badges_html, unsafe_allow_html=True)
 
     # 2. Pipeline Execution Trace Accordion (The High-ROI Evaluator Feature!)
     with st.expander(f"🔍 LangGraph Workflow Inspection ({'Refusal Edge' if is_refused else '5-Node State Execution'})"):
@@ -353,58 +353,50 @@ def render_response_metadata(meta: dict):
 
         # Step 1: Retrieve
         chunk_count = len(chunks) if not is_refused else 0
-        st.markdown(
-            """
-            <div class="stepper-node">
-                <div class="stepper-node-title">1. Node: retrieve (Vector DB)</div>
-                <div class="stepper-node-desc">Executed similarity search in ChromaDB. Converted L2 distances to cosine similarity via unit-vector formula.</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        node1_html = textwrap.dedent("""
+        <div class="stepper-node">
+            <div class="stepper-node-title">1. Node: retrieve (Vector DB)</div>
+            <div class="stepper-node-desc">Executed similarity search in ChromaDB. Converted L2 distances to cosine similarity via unit-vector formula.</div>
+        </div>
+        """).strip()
+        st.markdown(node1_html, unsafe_allow_html=True)
 
         # Step 2: Grade Relevance
         grade_desc = f"Batched LLM grading kept {len(chunks)} relevant chunks." if not is_refused else "Grading identified 0 relevant chunks → routed to refuse edge."
-        st.markdown(
-            f"""
-            <div class="stepper-node">
-                <div class="stepper-node-title">2. Node: grade_documents (Batched LLM)</div>
-                <div class="stepper-node-desc">{grade_desc}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        node2_html = textwrap.dedent(f"""
+        <div class="stepper-node">
+            <div class="stepper-node-title">2. Node: grade_documents (Batched LLM)</div>
+            <div class="stepper-node-desc">{grade_desc}</div>
+        </div>
+        """).strip()
+        st.markdown(node2_html, unsafe_allow_html=True)
 
         # Step 3 & 4: Generate & Verify
         if not is_refused:
             verdict_name = "fully_grounded" if grounded_score == 1.0 else ("partially_grounded" if grounded_score == 0.5 else "not_grounded")
-            st.markdown(
-                f"""
-                <div class="stepper-node">
-                    <div class="stepper-node-title">3. Node: generate (Grounded Synthesis)</div>
-                    <div class="stepper-node-desc">Generated response strictly using retrieved context chunks (Generation attempt {retries}/3).</div>
-                </div>
-                <div class="stepper-node">
-                    <div class="stepper-node-title">4. Node: verify_groundedness (Hallucination Check)</div>
-                    <div class="stepper-node-desc">Verdict: <code>{verdict_name}</code> (Score: {grounded_score:.1f}). Checked claims against source chunks.</div>
-                </div>
-                <div class="stepper-node">
-                    <div class="stepper-node-title">5. Node: compute_confidence (Composite Formula)</div>
-                    <div class="stepper-node-desc">Confidence = 0.6 × Normalized Retrieval + 0.4 × Groundedness = <b>{conf_val:.4f} ({label})</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            nodes345_html = textwrap.dedent(f"""
+            <div class="stepper-node">
+                <div class="stepper-node-title">3. Node: generate (Grounded Synthesis)</div>
+                <div class="stepper-node-desc">Generated response strictly using retrieved context chunks (Generation attempt {retries}/3).</div>
+            </div>
+            <div class="stepper-node">
+                <div class="stepper-node-title">4. Node: verify_groundedness (Hallucination Check)</div>
+                <div class="stepper-node-desc">Verdict: <code>{verdict_name}</code> (Score: {grounded_score:.1f}). Checked claims against source chunks.</div>
+            </div>
+            <div class="stepper-node">
+                <div class="stepper-node-title">5. Node: compute_confidence (Composite Formula)</div>
+                <div class="stepper-node-desc">Confidence = 0.6 × Normalized Retrieval + 0.4 × Groundedness = <b>{conf_val:.4f} ({label})</b></div>
+            </div>
+            """).strip()
+            st.markdown(nodes345_html, unsafe_allow_html=True)
         else:
-            st.markdown(
-                """
-                <div class="stepper-node" style="border-left-color: #EF4444;">
-                    <div class="stepper-node-title">3. Node: refuse (Out-of-Scope Termination)</div>
-                    <div class="stepper-node-desc">Zero context passed grading. Emitted out-of-scope refusal without hallucinating or wasting generation tokens.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            refuse_node_html = textwrap.dedent("""
+            <div class="stepper-node" style="border-left-color: #EF4444;">
+                <div class="stepper-node-title">3. Node: refuse (Out-of-Scope Termination)</div>
+                <div class="stepper-node-desc">Zero context passed grading. Emitted out-of-scope refusal without hallucinating or wasting generation tokens.</div>
+            </div>
+            """).strip()
+            st.markdown(refuse_node_html, unsafe_allow_html=True)
 
         # Confidence Visual Breakdown Bar
         if not is_refused and chunks:
@@ -427,22 +419,22 @@ def render_response_metadata(meta: dict):
                 score = ch.get("similarity_score", 0.0)
                 page = ch.get("page_number", "?")
                 sec = ch.get("section", "Unknown")
+                clean_text = html.escape(str(ch.get('text', '')).strip())
+                clean_sec = html.escape(str(sec))
 
-                st.markdown(
-                    f"""
-                    <div class="chunk-glass-box">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span class="chunk-header-title">Chunk #{i+1} · Page {page} · Section: {sec}</span>
-                            <div>
-                                {fragment_badge}
-                                <span style="color:#38BDF8; font-weight:700; font-size: 0.88rem; margin-left: 8px;">Score: {score:.2f}</span>
-                            </div>
+                card_html = textwrap.dedent(f"""
+                <div class="chunk-glass-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span class="chunk-header-title">Chunk #{i+1} · Page {page} · Section: {clean_sec}</span>
+                        <div>
+                            {fragment_badge}
+                            <span style="color:#38BDF8; font-weight:700; font-size: 0.88rem; margin-left: 8px;">Score: {score:.2f}</span>
                         </div>
-                        <div class="chunk-body-text">{ch.get('text', '').strip()}</div>
                     </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                    <div class="chunk-body-text">{clean_text}</div>
+                </div>
+                """).strip()
+                st.markdown(card_html, unsafe_allow_html=True)
 
 
 # --- Render Chat History ---
