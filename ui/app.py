@@ -331,8 +331,24 @@ with st.sidebar:
         st.rerun()
 
 
-# --- Main Layout: 2 Columns (Chat on Left, Observability on Right) ---
-col_chat, col_inspect = st.columns([1.65, 1.35], gap="medium")
+# Check if there is active metadata from current or previous queries
+active_meta = st.session_state.latest_metadata
+if not active_meta and st.session_state.messages:
+    for m in reversed(st.session_state.messages):
+        if m.get("role") == "assistant" and m.get("metadata"):
+            active_meta = m["metadata"]
+            break
+
+has_results = active_meta is not None and len(st.session_state.messages) > 0
+
+# --- Responsive Layout ---
+# Only display 2-column layout when a search has been executed and results are present.
+# At the start (before searching), the view is clean and full-width without any placeholder.
+if has_results:
+    col_chat, col_inspect = st.columns([1.65, 1.35], gap="medium")
+else:
+    col_chat = st.container()
+    col_inspect = None
 
 with col_chat:
     st.markdown('<div class="brand-title">Agentic AI Executive</div>', unsafe_allow_html=True)
@@ -461,15 +477,10 @@ with col_chat:
 
 
 # --- Right Column: Live RAG Observability Dashboard ---
-with col_inspect:
-    meta = st.session_state.latest_metadata
-    if not meta and st.session_state.messages:
-        for m in reversed(st.session_state.messages):
-            if m.get("role") == "assistant" and m.get("metadata"):
-                meta = m["metadata"]
-                break
-
-    if meta:
+# Only rendered when there are search results (hidden at start of project)
+if has_results and col_inspect is not None and active_meta:
+    with col_inspect:
+        meta = active_meta
         is_refused = meta.get("refused", False)
         conf_val = float(meta.get("confidence", 0.0))
         label = meta.get("confidence_label", "Low")
@@ -616,14 +627,3 @@ with col_inspect:
                 st.markdown(textwrap.dedent(chunk_html).strip(), unsafe_allow_html=True)
 
             st.markdown("</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(
-            """
-            <div class="panel-card" style="text-align:center; padding:40px 20px;">
-                <div style="font-size:2rem; margin-bottom:8px;">🔍</div>
-                <div style="font-weight:600; color:#F1F5F9; font-size:0.95rem;">Observability Dashboard</div>
-                <div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">Ask a question or select a topic on the left to see live pipeline execution, confidence breakdown, and source chunks.</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
