@@ -6,7 +6,6 @@
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **Interview Task Submission**: AI Engineering Intern — Appening Infotech  
 > **Knowledge Base**: *"Agentic AI: An Executive's Guide"* by Konverge AI (60 pages, 6 chapters, 125 chunks)
 
 A production-grade Retrieval-Augmented Generation (RAG) chatbot designed with a **stateful LangGraph pipeline**, featuring automated relevance grading, hallucination verification, automated retry loops, diagram/table ambiguity handling, and calibrated composite confidence scoring.

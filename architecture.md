@@ -1,6 +1,6 @@
 # System Architecture — Agentic AI RAG Chatbot
 
-This document details the architectural design, state machine mechanics, mathematical formulas, and risk mitigations implemented in the **Agentic AI RAG Chatbot** for the Appening Infotech AI Engineering Intern task.
+This document details the architectural design, state machine mechanics, mathematical formulas, and risk mitigations implemented in the **Agentic AI RAG Chatbot**.
 
 ---
 
