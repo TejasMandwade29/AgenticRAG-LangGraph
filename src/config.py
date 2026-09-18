@@ -9,13 +9,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Streamlit Community Cloud: sync st.secrets into os.environ if present
+try:
+    import streamlit as st
+    if hasattr(st, "secrets"):
+        for key, val in st.secrets.items():
+            if key not in os.environ:
+                os.environ[key] = str(val)
+except Exception:
+    pass
+
 # --- Paths ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 PDF_PATH = DATA_DIR / "Ebook-Agentic-AI.pdf"
 
 # --- Vector Store ---
-VECTOR_STORE = os.getenv("VECTOR_STORE", "pinecone").lower()  # "pinecone" or "chroma"
+VECTOR_STORE = os.getenv("VECTOR_STORE", "chroma").lower()  # "chroma" or "pinecone"
 CHROMA_PERSIST_DIR = str(PROJECT_ROOT / "chroma_db")
 
 # Pinecone settings

@@ -15,8 +15,6 @@ venv/
 env/
 ENV/
 
-# Vector database local storage
-chroma_db/
 
 # Scratch & temporary logs
 scratch/
