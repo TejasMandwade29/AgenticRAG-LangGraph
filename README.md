@@ -5,7 +5,9 @@
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://agenticrag-langgraph-pzmo5pcgrmvypjkd9q6a2p.streamlit.app)
 
+> 🚀 **Live Demo**: [https://agenticrag-langgraph-pzmo5pcgrmvypjkd9q6a2p.streamlit.app](https://agenticrag-langgraph-pzmo5pcgrmvypjkd9q6a2p.streamlit.app)  
 > **Knowledge Base**: *"Agentic AI: An Executive's Guide"* by Konverge AI (60 pages, 6 chapters, 125 chunks)
 
 A production-grade Retrieval-Augmented Generation (RAG) chatbot designed with a **stateful LangGraph pipeline**, featuring automated relevance grading, hallucination verification, automated retry loops, diagram/table ambiguity handling, and calibrated composite confidence scoring.
@@ -122,7 +124,10 @@ uvicorn api.main:app --reload --port 8000
 
 ### 5. Launch the Streamlit Web UI
 
-In a new terminal window:
+You can try the live application directly in your browser:
+👉 **[agenticrag-langgraph.streamlit.app](https://agenticrag-langgraph-pzmo5pcgrmvypjkd9q6a2p.streamlit.app)**
+
+Or launch it locally in a new terminal window:
 
 ```bash
 streamlit run ui/app.py
