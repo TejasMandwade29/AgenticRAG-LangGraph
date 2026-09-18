@@ -96,6 +96,7 @@ def _build_llm():
             api_key=GROQ_API_KEY,
             model=GROQ_MODEL,
             temperature=0.0,
+            max_tokens=750,
             max_retries=0,  # We handle retries ourselves via tenacity below
         )
     elif LLM_PROVIDER == "openai":
@@ -106,6 +107,7 @@ def _build_llm():
             api_key=OPENAI_API_KEY,
             model=OPENAI_MODEL,
             temperature=0.0,
+            max_tokens=750,
             max_retries=0,
         )
     else:
@@ -140,20 +142,23 @@ def get_vectorstore():
 
 @retry(
     retry=retry_if_exception_type(Exception),
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=5, max=40),
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1.5, min=5, max=30),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
-def _llm_invoke(prompt: str) -> str:
+def _llm_invoke(prompt: str, max_tokens: int = None) -> str:
     """
     Invoke the LLM with a raw string prompt.
-    Retries up to 3 times with exponential backoff (5s → 10s → 20s) on any
+    Retries up to 5 times with exponential backoff on any
     exception — primarily for Groq rate-limit (429) errors.
     Returns the response text as a plain string.
     """
     llm = get_llm()
-    response = llm.invoke([HumanMessage(content=prompt)])
+    kwargs = {}
+    if max_tokens is not None:
+        kwargs["max_tokens"] = max_tokens
+    response = llm.invoke([HumanMessage(content=prompt)], **kwargs)
     return response.content
 
 
@@ -236,7 +241,7 @@ def grade_documents(state: GraphState) -> dict:
     prompt = GRADE_PROMPT.format(question=question, numbered_chunks=numbered)
 
     try:
-        raw_response = _llm_invoke(prompt)
+        raw_response = _llm_invoke(prompt, max_tokens=60)
         parsed = _parse_json(raw_response)
         relevant_indices = parsed.get("relevant_indices", [])
 
@@ -309,7 +314,7 @@ def generate(state: GraphState) -> dict:
     else:
         logger.info("generate: first attempt")
 
-    answer = _llm_invoke(prompt)
+    answer = _llm_invoke(prompt, max_tokens=750)
     new_retry_count = retry_count + 1
 
     logger.info("generate: produced %d-char answer (retry_count now %d)", len(answer), new_retry_count)
@@ -339,7 +344,7 @@ def verify_groundedness(state: GraphState) -> dict:
     }
 
     try:
-        raw_response = _llm_invoke(prompt)
+        raw_response = _llm_invoke(prompt, max_tokens=40)
         parsed  = _parse_json(raw_response)
         verdict = parsed.get("verdict", "not_grounded")
         score   = SCORE_MAP.get(verdict, 0.0)
