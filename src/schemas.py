@@ -73,6 +73,14 @@ class ChatResponse(BaseModel):
             "were found or because the answer failed groundedness checks after max retries."
         )
     )
+    groundedness: float = Field(
+        default=0.0,
+        description="Groundedness verdict score (1.0 = fully grounded, 0.5 = partially, 0.0 = not grounded)",
+    )
+    retry_count: int = Field(
+        default=1,
+        description="Total generation attempts executed (1 = succeeded first try, 2+ = retried)",
+    )
 
 
 # ---------------------------------------------------------------------------

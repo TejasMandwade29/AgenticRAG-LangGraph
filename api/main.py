@@ -160,6 +160,8 @@ async def chat_endpoint(request: ChatRequest) -> ChatResponse:
         confidence_label=state.get("confidence_label", "Low"),
         grounded=grounded,
         refused=refused,
+        groundedness=float(state.get("groundedness", 0.0)),
+        retry_count=int(state.get("retry_count", 1)),
     )
 
     logger.info(
