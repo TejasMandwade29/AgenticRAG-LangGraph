@@ -105,7 +105,7 @@ EMBEDDING_MODEL=all-MiniLM-L6-v2
 
 ### 3. Ingest the eBook into the Vector Database
 
-Ingest the 60-page PDF into ChromaDB with structural metadata tagging:
+Place the `Ebook-Agentic-AI.pdf` file in the project root directory and run:
 
 ```bash
 python -m src.ingest --recreate
@@ -210,7 +210,7 @@ AgenticRAG-LangGraph/
 ├── requirements.txt               # Pinned project dependencies
 ├── .env.example                   # Environment configuration template
 ├── .gitignore                     # Git exclusion rules
-├── Ebook-Agentic-AI.pdf          # Knowledge base source (60-page PDF)
+├── Ebook-Agentic-AI.pdf          # Knowledge base source PDF (local, excluded from git)
 │
 ├── src/                           # Core RAG pipeline package
 │   ├── __init__.py
