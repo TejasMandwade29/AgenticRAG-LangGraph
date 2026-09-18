@@ -96,7 +96,7 @@ def _build_llm():
             api_key=GROQ_API_KEY,
             model=GROQ_MODEL,
             temperature=0.0,
-            max_tokens=750,
+            max_tokens=450,
             max_retries=0,  # We handle retries ourselves via tenacity below
         )
     elif LLM_PROVIDER == "openai":
@@ -314,7 +314,7 @@ def generate(state: GraphState) -> dict:
     else:
         logger.info("generate: first attempt")
 
-    answer = _llm_invoke(prompt, max_tokens=750)
+    answer = _llm_invoke(prompt, max_tokens=450)
     new_retry_count = retry_count + 1
 
     logger.info("generate: produced %d-char answer (retry_count now %d)", len(answer), new_retry_count)
