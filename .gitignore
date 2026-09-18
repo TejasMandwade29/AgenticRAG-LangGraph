@@ -27,3 +27,7 @@ scratch/
 Thumbs.db
 .idea/
 .vscode/
+
+# Knowledge Base & Documents
+*.pdf
+*.pdf.bak
